@@ -1,4 +1,4 @@
-package com.goeuro.service.controller;
+package com.goeuro.inventory.controller;
 
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;

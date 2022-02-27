@@ -1,0 +1,10 @@
+package com.goeuro.inventory.bdd;
+
+import com.goeuro.inventory.ApplicationTest;
+import io.cucumber.spring.CucumberContextConfiguration;
+import org.springframework.test.context.ContextConfiguration;
+
+@CucumberContextConfiguration
+@ContextConfiguration(classes = {ApplicationTest.class})
+public class CucumberSpringContextConfig {
+}
