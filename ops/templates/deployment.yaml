@@ -1,0 +1,71 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Values.name }}
+  namespace: {{ .Values.name }}
+spec:
+  replicas: {{ .Values.config_replicas }}
+  revisionHistoryLimit: 1
+  selector:
+    matchLabels:
+      app: {{ .Values.name }}
+  strategy:
+    rollingUpdate:
+      maxUnavailable: 0
+      maxSurge: "30%"
+  template:
+    metadata:
+      labels:
+        app: {{ .Values.name }}
+        active: "yes"
+    spec:
+      containers:
+        - name: {{ .Values.name }}
+          {{ if eq "dev" .Values.env }}
+          # Use local image for development, because we'll be doing docker build all the time
+          image: eu.gcr.io/goeuro-dev/{{ .Values.name }}:latest
+          imagePullPolicy: IfNotPresent
+          {{ else if hasPrefix "prod-" .Values.env }}
+          # Example of how you can check whether its a prod environment
+          image: eu.gcr.io/goeuro-dev/{{ .Values.name }}:{{.Values.rev}}
+          imagePullPolicy: Always
+          {{ else }}
+          # All other environments
+          image: eu.gcr.io/goeuro-dev/{{ .Values.name }}:{{.Values.rev}}
+          imagePullPolicy: Always
+          {{ end}}
+          resources:
+            requests:
+              cpu: 1
+              memory: 1Gi
+            limits:
+              cpu: 1
+              memory: 1Gi
+          ports:
+            - containerPort: 8080
+          livenessProbe:
+            initialDelaySeconds: 120
+            httpGet:
+              path: /_system/health
+              port: 8080
+          readinessProbe:
+            httpGet:
+              path: /_system/health
+              port: 8080
+          lifecycle:
+            preStop:
+              exec:
+                command: ["/bin/sleep","20"]
+          env:
+            # Sets APP_ENV to point to the current environment
+            - name: APP_ENV
+              value: "{{.Values.env}}"
+            # Set some unique property to trigger a deployment everytime this is deployed
+            - name: FORCE_RESTART
+              value: "{{now.Unix}}"
+            # This is how we make all "app_FOO=BAR" values into environment variables
+            # But you can also write it to a properties file, context.xml file, -D parameters, etc
+            {{ range $key, $value := .Values }}{{ if hasPrefix "app_" $key }}
+            - name: {{$key | trimPrefix "app_" | upper}}
+              value: "{{$value}}"
+            {{end }}{{ end }}

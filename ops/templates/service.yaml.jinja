@@ -1,0 +1,50 @@
+---
+# First, define a default "Service"
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{{ service_name }}}
+  namespace: {{ .Values.name }}
+spec:
+  {% if node_port is defined %}
+  type: NodePort
+  {% endif %}
+  ports:
+    - port: 8080
+      # Please leave the port name as is. It's required for Istio
+      # to work and understand the protocol that goes over the wire
+      name: http
+      {% if node_port is defined %}
+      nodePort: {{{ node_port }}}
+      {% endif %}
+  selector:
+    app: {{ .Values.name }}
+---
+# Next, plug this service with the load balancer
+# Convention is: your service must be exposed as <qa|prod>/<namespace>/
+#    (advanced: you can also have multiple ingresses for many services in your namespace)
+#    (all of them should begin with /namespace/, i.e. /namespace/serviceA, /namespace/serviceB, etc)
+# Here, travel-the-pipe is exposed as <*.goeuro.ninja>/{{{ service_name }}}/
+# Its way better if you can use 1 service = 1 name/identifier = 1 namespace
+#    = use same name for git repo, metrics prefix, route prefix, ci pipeline, everywhere
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: default-ingress
+  namespace: {{.Values.name}}
+  annotations:
+    # This line is required:
+    kubernetes.io/ingress.class: "nginx"
+    # Our application serves at "/", so we simply remove the prefix:
+    ingress.kubernetes.io/rewrite-target: "/"
+    # If you need your service to be accessible only to our office or to certain IPs, use this:
+    ingress.kubernetes.io/whitelist-source-range: "127.0.0.1/32"
+spec:
+  rules:
+  - http:
+      paths:
+      # expose {{{ service_name }}} as /{{{ service_name }}}/
+      - path: /{{ .Values.name }}/
+        backend:
+          serviceName: {{{ service_name }}}
+          servicePort: 8080

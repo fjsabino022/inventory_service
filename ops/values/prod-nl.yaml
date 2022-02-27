@@ -1,0 +1,4 @@
+# this is used only when `env=prod-nl`
+# and its used *in addition* to the default values.yaml
+config_replicas: 2
+app_FOO1: "FOO1 is something else in prod-nl"

@@ -1,0 +1,4 @@
+# this is used only when `env=qa`
+# and its used *in addition* to the default values.yaml
+config_replicas: 1
+app_FOO1: "FOO1 is something else in qa"

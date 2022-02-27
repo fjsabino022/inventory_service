@@ -1,0 +1,17 @@
+---
+# Standard values
+env: dev
+name: {{{ service_name }}}
+rev: latest
+
+# REST OF THE BELOW CONFIGS CAN BE OVERRIDDEN FOR EACH ENVIRONMENT
+# Check values/<dev|qa|...>.yaml files
+config_replicas: 1
+
+# Now let's define some app configuration
+# Any value like app_* can be converted into configuration for the app
+# Some apps use env vars, some use context.xml, some use properties files, etc
+# Check the "deployment.yaml" to see how these are converted into env vars
+# Check the "config.yaml" to see how these are converted into a properties file
+app_FOO1: BAR1
+app_FOO2: BAR2

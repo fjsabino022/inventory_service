@@ -1,0 +1,3 @@
+# this is used only when `env=dev`
+config_replicas: 1
+app_FOO1: "FOO1 is something else in dev"

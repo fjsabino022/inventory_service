@@ -1,0 +1,58 @@
+# Full annotated reference:
+# https://github.com/goeuro/travel-the-pipe/blob/master/ops/ci.yaml
+
+.meta:
+  name: {{{ pipeline_name }}}
+  group: {{{ pod }}}
+  email: {{{ email }}}
+  slack: {{{ slack }}}
+
+.job_defaults: &job_template
+  image: eu.gcr.io/goeuro-dev/jenkins-jdk11:latest
+  {% if service_dir %}
+  before_script: cd {{{ service_dir }}}
+  {% endif %}
+
+# anything with stage:test is run on PRs
+unit-tests:
+  <<: *job_template
+  stage: test
+  script: make test
+
+# every ci.yaml needs one "master" job which is the entrypoint for the pipeline
+master:
+  <<: *job_template
+  script: make release
+
+stages:
+  - staging
+  - prod
+
+deploy_qa:
+  <<: *job_template
+  stage: staging
+  environment:
+    name: qa
+    .credentials: "{{{ credentials }}}"
+  script: make deploy
+
+# uncomment when you are ready
+
+# deploy_prod_be:
+#   <<: *job_template
+#   stage: prod
+#   environment:
+#     name: prod-be
+#     .credentials: "{{{ credentials }}}"
+#   script: make deploy
+
+# deploy_prod_nl:
+#   <<: *job_template
+#   stage: prod
+#   environment:
+#     name: prod-nl
+#     .credentials: "{{{ credentials }}}"
+#   script: make deploy
+
+# For further features, cron jobs, preview VMs, etc, refer:
+# https://github.com/goeuro/travel-the-pipe/blob/master/ops/ci.yaml
