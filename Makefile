@@ -1,6 +1,6 @@
 SHELL=/bin/bash
-PROJECT_NAME={{{ service_name }}}
-REPO_NAME={{{ repo_name }}}
+PROJECT_NAME=inventory-service
+REPO_NAME=inventory-service
 GIT_COMMIT?=latest
 APP_ENV?=dev
 
@@ -22,3 +22,9 @@ deploy:
 clean:
 	mvn clean
 	kubectl delete ns $(PROJECT_NAME) --cascade=true --grace-period=5 || true
+
+format-check:
+	mvn spotless:check
+
+format:
+	mvn spotless:apply

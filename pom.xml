@@ -27,6 +27,9 @@
         <starters.version>3.0.59</starters.version>
         <cucumber.version>7.0.0</cucumber.version>
         <junit.platform.version>1.8.1</junit.platform.version>
+        <slack.version>1.20.0</slack.version>
+        <spotless.version>2.7.0</spotless.version>
+        <google.cloud.version>24.4.0</google.cloud.version>
     </properties>
 
     <dependencyManagement>
@@ -42,6 +45,13 @@
                 <groupId>com.omio.spring.starter</groupId>
                 <artifactId>starter-bom</artifactId>
                 <version>${starters.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+            <dependency>
+                <groupId>com.google.cloud</groupId>
+                <artifactId>libraries-bom</artifactId>
+                <version>${google.cloud.version}</version>
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
@@ -84,7 +94,49 @@
             <version>${lombok.version}</version>
         </dependency>
 
-        <!-- Tests START -->
+        <!-- google cloud -->
+        <dependency>
+            <groupId>com.google.cloud</groupId>
+            <artifactId>google-cloud-bigquery</artifactId>
+        </dependency>
+
+        <!-- elasticsearch-->
+        <dependency>
+            <groupId>co.elastic.clients</groupId>
+            <artifactId>elasticsearch-java</artifactId>
+            <version>7.16.3</version>
+        </dependency>
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-databind</artifactId>
+            <version>2.12.3</version>
+        </dependency>
+        <dependency>
+            <groupId>org.glassfish</groupId>
+            <artifactId>jakarta.json</artifactId>
+            <version>2.0.1</version>
+        </dependency>
+
+        <!-- slack -->
+        <dependency>
+            <groupId>com.slack.api</groupId>
+            <artifactId>slack-api-client</artifactId>
+            <version>${slack.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.squareup.okhttp3</groupId>
+            <artifactId>okhttp</artifactId>
+            <version>4.9.3</version>
+        </dependency>
+
+        <!-- Test -->
+        <dependency>
+            <groupId>org.assertj</groupId>
+            <artifactId>assertj-core</artifactId>
+            <version>3.22.0</version>
+            <scope>test</scope>
+        </dependency>
+
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>
@@ -157,6 +209,26 @@
         </repository>
     </repositories>
 
+    <profiles>
+        <profile>
+            <id>acceptance</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-surefire-plugin</artifactId>
+                        <configuration>
+                            <includes>
+                                <include>**/*RunCucumber.java</include>
+                            </includes>
+                            <argLine>@{argLine} --enable-preview</argLine>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
+
     <build>
         <resources>
             <resource>
@@ -171,6 +243,9 @@
                 <version>${maven.compiler.plugin.version}</version>
                 <configuration>
                     <release>${java.version}</release>
+                    <source>15</source>
+                    <target>15</target>
+                    <compilerArgs>--enable-preview</compilerArgs>
                 </configuration>
             </plugin>
             <plugin>
@@ -203,6 +278,19 @@
                             <version>${starters.version}</version>
                         </mixin>
                     </mixins>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>com.diffplug.spotless</groupId>
+                <artifactId>spotless-maven-plugin</artifactId>
+                <version>${spotless.version}</version>
+                <configuration>
+                    <java>
+                        <googleJavaFormat>
+                            <version>1.9</version>
+                            <style>GOOGLE</style>
+                        </googleJavaFormat>
+                    </java>
                 </configuration>
             </plugin>
         </plugins>
